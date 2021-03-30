@@ -24,7 +24,7 @@ contract LootBox is ERC721 {
         uint256 selectedOption = randomNumber >= 0 && randomNumber < 10 ? 0 : // 10% chances for blue
                                  randomNumber >= 10 && randomNumber < 20 ? 1 : // 10% chances for green
                                  randomNumber >= 20 && randomNumber < 70 ? 2 : // 50% chances for red
-                                 3; // Remainder 20% chances for orange
+                                 3; // Remainder 30% chances for orange
 
         RewardERC721 reward = RewardERC721(REWARDING_FACTORY);
         reward.mint(msg.sender, selectedOption);
