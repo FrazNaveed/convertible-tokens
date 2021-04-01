@@ -9,6 +9,8 @@ contract LootBoxRandomness {
     uint256 ASSET_CLASSES;
     uint256 RANDOM_NONCE;
     mapping (uint256 => uint256) PROBABILITY_BOUNDARIES;
+    
+    event RandomSelected(uint256 randomizedNumber, uint256 selectedOption, uint256 fromClass);
 
     constructor(uint256 assetOptions, uint256 assetClasses) {
         ASSET_OPTIONS = assetOptions;
@@ -45,6 +47,8 @@ contract LootBoxRandomness {
                 break;
             }
         }
+        
+        emit RandomSelected(randomNumber, selectedOption, PROBABILITY_BOUNDARIES[selectedOption]);
         
         return selectedOption;
     }
