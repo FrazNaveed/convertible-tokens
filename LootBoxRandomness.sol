@@ -16,16 +16,16 @@ contract LootBoxRandomness {
         RANDOM_NONCE = 0;
     }
     
-    function setLootBoxState(uint256 newAssetOptions, uint256 newAssetClasses) internal {
+    function _setLootBoxState(uint256 newAssetOptions, uint256 newAssetClasses) internal {
         ASSET_OPTIONS = newAssetOptions;
         ASSET_CLASSES = newAssetClasses;
     }
     
-    function getLootBoxState() internal view returns(uint256, uint256) {
+    function _getLootBoxState() internal view returns(uint256, uint256) {
         return (ASSET_OPTIONS, ASSET_CLASSES);
     }
     
-    function setRandomizerClasses(uint256[] memory classProbabilityBoundaries) internal {
+    function _setRandomizerClasses(uint256[] memory classProbabilityBoundaries) internal {
         uint256 sumSoFar = 0;
         for(uint256 i = 0; i < ASSET_CLASSES; i++) {
             sumSoFar = sumSoFar.add(classProbabilityBoundaries[i]);
