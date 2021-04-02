@@ -5,26 +5,23 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/m
 contract LootBoxRandomness {
     using SafeMath for uint256;
     
-    uint256 ASSET_OPTIONS;
     uint256 ASSET_CLASSES;
     uint256 RANDOM_NONCE;
     mapping (uint256 => uint256) PROBABILITY_BOUNDARIES;
     
     event RandomSelected(uint256 randomizedNumber, uint256 selectedOption, uint256 fromClass);
 
-    constructor(uint256 assetOptions, uint256 assetClasses) {
-        ASSET_OPTIONS = assetOptions;
+    constructor(uint256 assetClasses) {
         ASSET_CLASSES = assetClasses;
         RANDOM_NONCE = 0;
     }
     
-    function _setLootBoxState(uint256 newAssetOptions, uint256 newAssetClasses) internal {
-        ASSET_OPTIONS = newAssetOptions;
+    function _setLootBoxState(uint256 newAssetClasses) internal {
         ASSET_CLASSES = newAssetClasses;
     }
     
-    function _getLootBoxState() internal view returns(uint256, uint256) {
-        return (ASSET_OPTIONS, ASSET_CLASSES);
+    function _getLootBoxState() internal view returns(uint256) {
+        return ASSET_CLASSES;
     }
     
     function _setRandomizerClasses(uint256[] memory classProbabilityBoundaries) internal {
@@ -39,17 +36,17 @@ contract LootBoxRandomness {
     function _mintRandom() internal returns(uint256) {
         uint256 randomNumber = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, RANDOM_NONCE++))).mod(100);
 
-        uint256 selectedOption;
+        uint256 selectedClass;
         
         for(uint256 i = 0; i < ASSET_CLASSES; i++) {
             if (randomNumber < PROBABILITY_BOUNDARIES[i]) {
-                selectedOption = i;
+                selectedClass = i;
                 break;
             }
         }
         
-        emit RandomSelected(randomNumber, selectedOption, PROBABILITY_BOUNDARIES[selectedOption]);
+        emit RandomSelected(randomNumber, selectedClass, PROBABILITY_BOUNDARIES[selectedClass]);
         
-        return selectedOption;
+        return selectedClass;
     }
 }
