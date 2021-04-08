@@ -6,7 +6,6 @@ contract EggToken is ERC721Pausable {
     uint256 EGG_COUNTER;
     mapping (uint256 => string) EGG_COLORS;
     
-    
     constructor(
         string memory name_,
         string memory symbol_
@@ -15,7 +14,8 @@ contract EggToken is ERC721Pausable {
     }
     
     function mint(address receiver, string memory color) public returns(uint256) {
-        _mint(receiver, EGG_COUNTER++);
+        // make it so only eggfactory can mint
+        _mint(receiver, ++EGG_COUNTER);
         EGG_COLORS[EGG_COUNTER] = color;
         return EGG_COUNTER;
     }
@@ -25,6 +25,7 @@ contract EggToken is ERC721Pausable {
     }
     
     function burn(uint256 tokenId) public virtual {
+        // make it so only petfactory or msgsender can burn
         require(_isApprovedOrOwner(_msgSender(), tokenId), "ERC721Burnable: caller is not owner nor approved");
         _burn(tokenId);
     }

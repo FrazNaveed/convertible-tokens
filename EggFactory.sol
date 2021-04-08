@@ -4,6 +4,8 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/token/E
 import "./EggLootBox.sol";
 import "./EggToken.sol";
 
+// TODO: Pausable
+
 contract EggFactory {
     address SOURCE_TOKEN;
     uint256 LOOTBOX_OPTIONS;
@@ -155,7 +157,7 @@ contract EggFactory {
 
         uint256 randomEggFromClass = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, RANDOM_NONCE++))) % (CLASS_EGGS[returnedClass].length);
 
-        EGG_TOKEN.mint(msg.sender, EGG_COLORS[returnedClass]);
+        EGG_TOKEN.mint(msg.sender, EGG_COLORS[randomEggFromClass]);
         
         emit EggLootBoxOpened(msg.sender, CLASS_NAMES[returnedClass], CLASS_EGGS[returnedClass][randomEggFromClass]);
     }
