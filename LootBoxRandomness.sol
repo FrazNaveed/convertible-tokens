@@ -35,7 +35,7 @@ contract LootBoxRandomness {
     
     function _mintRandom() internal returns(uint256) {
         RANDOM_NONCE = (RANDOM_NONCE + 1).mod(1000000000); // Prevent integer overflow
-        uint256 randomNumber = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, RANDOM_NONCE++))).mod(100);
+        uint256 randomNumber = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, RANDOM_NONCE))).mod(100);
 
         uint256 selectedClass;
         
