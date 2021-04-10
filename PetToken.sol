@@ -11,24 +11,42 @@ contract PetToken is ERC721 {
     uint256 MINTED_COUNT;
     mapping(uint256 => string) MINTED_ID_NAME;
     
-    constructor() ERC721("Pet Token", "PTK") {
-        RANDOM_NONCE = 0;
-        MINTED_COUNT = 0;
+    address owner;
+    address petFactory;
+    
+    modifier onlyOwner() {
+        require(msg.sender == owner || msg.sender == petFactory, "PetToken: This action can only be performed by owner or PetFactory");
+        _;
     }
     
-    function addPet(string memory petName) external returns(uint256) {
-        // make sure only petfactory calls this
+    constructor(string memory name, string memory symbol) ERC721(name, symbol) {
+        RANDOM_NONCE = 0;
+        MINTED_COUNT = 0;
+        owner = msg.sender;
+    }
+    
+    function transferOwnership(address newOwner) external onlyOwner {
+        owner = newOwner;
+    }
+    
+    function setParentFactory(address newPetFactory) external onlyOwner {
+        eggFactory = newPetFactory;
+    }
+    
+    function getOwners() external view returns(address, address) {
+        return(owner, eggFactory);
+    }
+    
+    function addPet(string memory petName) external onlyOwner {
         require(PET_NAME_IDS[petName] == 0, "PetToken::addPet: A pet with same name already exists");
-        PET_ID_NAMES[++PETS_COUNT] = petName;
-        return PETS_COUNT;
+        PET_ID_NAMES[PETS_COUNT++] = petName;
     }
     
     function getPetFromId(uint256 id) external view returns(string memory) {
         return PET_ID_NAMES[id];
     }
     
-    function mintRandom(uint256[] memory classProbabilities) external returns(uint256, string memory) {
-        // make sure only petfactory calls this
+    function mintRandom(uint256[] memory classProbabilities) external onlyOwner returns(uint256, string memory) {
         uint256 randomNumber = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, RANDOM_NONCE++))) % 100;
         uint256 sumSoFar = 0;
         uint256 selectedClass = 0;
