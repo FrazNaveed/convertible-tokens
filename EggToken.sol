@@ -8,9 +8,10 @@ contract EggToken is ERC721Pausable {
     
     address owner;
     address eggFactory;
+    address petFactory;
     
     modifier onlyOwner() {
-        require(msg.sender == owner || msg.sender == eggFactory, "EggToken: This action can only be performed by owner or EggFactory");
+        require(msg.sender == owner || msg.sender == eggFactory || msg.sender == petFactory, "EggToken: This action can only be performed by owner or EggFactory");
         _;
     }
     
@@ -26,12 +27,13 @@ contract EggToken is ERC721Pausable {
         owner = newOwner;
     }
     
-    function setParentFactory(address newEggFactory) external onlyOwner {
+    function setParentFactories(address newEggFactory, address newPetFactory) external onlyOwner {
         eggFactory = newEggFactory;
+        petFactory = newPetFactory;
     }
     
-    function getOwners() external view returns(address, address) {
-        return(owner, eggFactory);
+    function getOwners() external view returns(address, address, address) {
+        return(owner, eggFactory, petFactory);
     }
     
     function getEggColor(uint256 eggId) external view returns(string memory) {
