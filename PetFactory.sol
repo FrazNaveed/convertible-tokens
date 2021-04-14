@@ -8,6 +8,7 @@ contract PetFactory {
     address SOURCE_TOKEN;
     address EGG_TOKEN;
     address PET_TOKEN;
+    uint256 PET_FEES;
     mapping (string => uint256[]) EGG_PET_PROBABILITIES;
     
     address factoryOwner;
@@ -28,11 +29,13 @@ contract PetFactory {
     constructor(
         address sourceToken,
         address eggToken,
-        address petToken
+        address petToken,
+        uint256 petFees
     ) {
         SOURCE_TOKEN = sourceToken;
         EGG_TOKEN = eggToken;
         PET_TOKEN = petToken;
+        PET_FEES = petFees;
         factoryOwner = msg.sender;
     }
     
@@ -42,6 +45,10 @@ contract PetFactory {
     
     function setEggToken(address newEgg) external onlyDelegatedOwner {
         EGG_TOKEN = newEgg;
+    }
+    
+    function setPetFees(uint256 newFees) external onlyDelegatedOwner {
+        PET_FEES = newFees;
     }
     
     function setEggPetProbabilities(string memory eggColor, uint256[] memory probabilitiesList) external onlyDelegatedOwner {
@@ -64,6 +71,10 @@ contract PetFactory {
         return EGG_TOKEN;
     }
     
+    function getPetFees() external view returns(uint256) {
+        return PET_FEES;
+    }
+    
     function getEggPetProbabilities(string memory eggColor) external view returns(uint256[] memory) {
         return EGG_PET_PROBABILITIES[eggColor];
     }
@@ -77,7 +88,7 @@ contract PetFactory {
     }
     
     function buyPet(uint256 eggId) external returns(uint256) {
-        //CandyToken ct = CandyToken(SOURCE_TOKEN);
+        CandyToken ct = CandyToken(SOURCE_TOKEN);
         EggToken et = EggToken(EGG_TOKEN);
         PetToken pt = PetToken(PET_TOKEN);
         
@@ -87,9 +98,11 @@ contract PetFactory {
         
         uint256 newPetTokenId;
         string memory selectedPetClassName;
-        (newPetTokenId, selectedPetClassName) = pt.mintRandom(petProbabilities);
+        (newPetTokenId, selectedPetClassName) = pt.mintRandom(msg.sender, petProbabilities);
         
         emit PetPurchased(msg.sender, newPetTokenId, selectedPetClassName);
+        ct.transferFrom(msg.sender, address(this), PET_FEES);
+        et.burn(eggId);
         return newPetTokenId;
     }
 }
