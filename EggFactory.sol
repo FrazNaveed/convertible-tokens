@@ -4,8 +4,6 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/token/E
 import "./EggLootBox.sol";
 import "./EggToken.sol";
 
-// TODO: Pausable
-
 contract EggFactory {
     address SOURCE_TOKEN;
     uint256 LOOTBOX_OPTIONS;
@@ -72,7 +70,7 @@ contract EggFactory {
         RANDOM_NONCE = 0;
     }
     
-    function setSourceTokenAddres(address newAddess) external onlyDelegatedOwner {
+    function setSourceTokenAddress(address newAddess) external onlyDelegatedOwner {
         SOURCE_TOKEN = newAddess;
     }
     
@@ -147,7 +145,7 @@ contract EggFactory {
         return delegatedOwner;
     }
     
-    function buyLootBox(uint256 selectedClass) external {
+    function buyLootBox(uint256 selectedClass) external returns(address, string memory, string memory) {
         ERC20 SourceToken = ERC20(SOURCE_TOKEN);
         require(SourceToken.balanceOf(msg.sender) >= LOOTBOX_PRICES[selectedClass], "EggFactory::buyLootBox: User does not have sufficient source tokens");
         
@@ -158,6 +156,8 @@ contract EggFactory {
         uint256 randomEggFromClass = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, RANDOM_NONCE++))) % (CLASS_EGGS[returnedClass].length);
 
         EGG_TOKEN.mint(msg.sender, EGG_COLORS[randomEggFromClass]);
+        
+        return(msg.sender, CLASS_NAMES[returnedClass], CLASS_EGGS[returnedClass][randomEggFromClass]);
         
         emit EggLootBoxOpened(msg.sender, CLASS_NAMES[returnedClass], CLASS_EGGS[returnedClass][randomEggFromClass]);
     }
