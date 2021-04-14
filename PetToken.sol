@@ -12,10 +12,10 @@ contract PetToken is ERC721 {
     mapping(uint256 => string) MINTED_ID_NAME;
     
     address owner;
-    address petFactory;
+    address eggFactory;
     
     modifier onlyOwner() {
-        require(msg.sender == owner || msg.sender == petFactory, "PetToken: This action can only be performed by owner or PetFactory");
+        require(msg.sender == owner || msg.sender == eggFactory, "PetToken: This action can only be performed by owner or PetFactory");
         _;
     }
     
@@ -46,7 +46,11 @@ contract PetToken is ERC721 {
         return PET_ID_NAMES[id];
     }
     
-    function mintRandom(uint256[] memory classProbabilities) external onlyOwner returns(uint256, string memory) {
+    function getMintedName(uint256 mintedId) external view returns(string memory) {
+        return MINTED_ID_NAME[mintedId];
+    }
+    
+    function mintRandom(address receiver, uint256[] memory classProbabilities) external onlyOwner returns(uint256, string memory) {
         uint256 randomNumber = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, RANDOM_NONCE++))) % 100;
         uint256 sumSoFar = 0;
         uint256 selectedClass = 0;
@@ -57,7 +61,7 @@ contract PetToken is ERC721 {
                 break;
             }
         }
-        _mint(msg.sender, ++MINTED_COUNT);
+        _mint(receiver, ++MINTED_COUNT);
         MINTED_ID_NAME[MINTED_COUNT] = PET_ID_NAMES[selectedClass];
         return (MINTED_COUNT, PET_ID_NAMES[selectedClass]);
     }
