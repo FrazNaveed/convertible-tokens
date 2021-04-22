@@ -7,6 +7,7 @@ contract PetToken is ERC721 {
     uint256 PETS_COUNT;
     mapping(uint256 => string) PET_ID_NAMES;
     mapping(string => uint256) PET_NAME_IDS;
+    mapping(uint256 => string) PET_ID_VISUALS;
     
     uint256 MINTED_COUNT;
     mapping(uint256 => string) MINTED_ID_NAME;
@@ -37,17 +38,19 @@ contract PetToken is ERC721 {
         return(owner, eggFactory);
     }
     
-    function addPet(string memory petName) external onlyOwner {
+    function addPet(string memory petName, string memory petVisual) external onlyOwner {
         require(PET_NAME_IDS[petName] == 0, "PetToken::addPet: A pet with same name already exists");
         PET_ID_NAMES[PETS_COUNT++] = petName;
+        PET_ID_VISUALS[PETS_COUNT] = petVisual;
     }
     
-    function getPetFromId(uint256 id) external view returns(string memory) {
-        return PET_ID_NAMES[id];
+    function getPetFromId(uint256 id) external view returns(string memory, string memory) {
+        return (PET_ID_NAMES[id], PET_ID_VISUALS[id]);
     }
     
-    function getMintedName(uint256 mintedId) external view returns(string memory) {
-        return MINTED_ID_NAME[mintedId];
+    function getMintedPet(uint256 mintedId) external view returns(string memory petName, string memory petVisual) {
+        petName = MINTED_ID_NAME[mintedId];
+        petVisual = PET_ID_VISUALS[PET_NAME_IDS[MINTED_ID_NAME[mintedId]]];
     }
     
     function mintRandom(address receiver, uint256[] memory classProbabilities) external onlyOwner returns(uint256, string memory) {

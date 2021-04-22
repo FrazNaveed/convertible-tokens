@@ -5,6 +5,7 @@ import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/token/E
 contract EggToken is ERC721Pausable {
     uint256 EGG_COUNTER;
     mapping (uint256 => string) EGG_COLORS;
+    mapping (uint256 => string) EGG_VISUALS;
     
     address owner;
     address eggFactory;
@@ -40,14 +41,21 @@ contract EggToken is ERC721Pausable {
         return EGG_COLORS[eggId];
     }
     
-    function mint(address receiver, string memory color) external onlyOwner returns(uint256) {
+    function getEggVisual(uint256 eggId) external view returns(string memory) {
+        return EGG_VISUALS[eggId];
+    }
+    
+    function mint(address receiver, string memory color, string memory visual) external onlyOwner returns(uint256) {
         _mint(receiver, ++EGG_COUNTER);
         EGG_COLORS[EGG_COUNTER] = color;
+        EGG_VISUALS[EGG_COUNTER] = visual;
         return EGG_COUNTER;
     }
     
     function burn(uint256 tokenId) external onlyOwner {
         _burn(tokenId);
+        delete EGG_COLORS[tokenId];
+        delete EGG_VISUALS[tokenId];
     }
     
     function pause() external onlyOwner {

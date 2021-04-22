@@ -93,6 +93,8 @@ contract PetFactory {
         PetToken pt = PetToken(PET_TOKEN);
         
         require(et.ownerOf(eggId) == msg.sender, "PetFactory::buyPet: The sender is not owner of given egg");
+        require(ct.balanceOf(msg.sender) >= PET_FEES, "PetFactory::buyPet: The sender does not have sufficient pet fees");
+        
         string memory eggColor = et.getEggColor(eggId);
         uint256[] memory petProbabilities = EGG_PET_PROBABILITIES[eggColor];
         

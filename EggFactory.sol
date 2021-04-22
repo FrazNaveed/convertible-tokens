@@ -11,6 +11,7 @@ contract EggFactory {
     uint256[][] LOOTBOX_PROBABILITIES;
     uint256 EGG_OPTIONS;
     string[] EGG_COLORS;
+    string[] EGG_VISUALS;
     uint256 EGG_CLASSES;
     string[] CLASS_NAMES;
     string[][] CLASS_EGGS;
@@ -42,6 +43,7 @@ contract EggFactory {
             uint256[][] memory lootBoxProbabilities,
             uint256 eggOptions,
             string[] memory eggColors,
+            string[] memory eggVisuals,
             uint256 eggClasses,
             string[] memory classNames,
             string[][] memory classEggs,
@@ -54,6 +56,7 @@ contract EggFactory {
         LOOTBOX_PROBABILITIES = lootBoxProbabilities;
         EGG_OPTIONS = eggOptions;
         EGG_COLORS = eggColors;
+        EGG_VISUALS = eggVisuals;
         EGG_CLASSES = eggClasses;
         CLASS_NAMES = classNames;
         CLASS_EGGS = classEggs;
@@ -83,9 +86,10 @@ contract EggFactory {
         LOOTBOX_PROBABILITIES = newProbabilities;
     }
     
-    function setEggOptions(uint256 newOptions, string[] memory newColors) external onlyDelegatedOwner {
+    function setEggOptions(uint256 newOptions, string[] memory newColors, string[] memory newVisuals) external onlyDelegatedOwner {
         EGG_OPTIONS = newOptions;
         EGG_COLORS = newColors;
+        EGG_VISUALS = newVisuals;
     }
     
     function setEggClasses(uint256 newClasses, string[] memory newClassNames, string[][] memory newClassEggs) external onlyDelegatedOwner {
@@ -121,8 +125,8 @@ contract EggFactory {
         return LOOTBOX_PROBABILITIES;
     }
     
-    function getEggOptions() view external returns(uint256, string[] memory) {
-        return (EGG_OPTIONS, EGG_COLORS);
+    function getEggOptions() view external returns(uint256, string[] memory, string[] memory) {
+        return (EGG_OPTIONS, EGG_COLORS, EGG_VISUALS);
     }
     
     function getEggClasses() view external returns(uint256, string[] memory, string[][] memory) {
@@ -145,7 +149,7 @@ contract EggFactory {
         return delegatedOwner;
     }
     
-    function buyLootBox(uint256 selectedClass) external returns(address, string memory, string memory) {
+    function buyLootBox(uint256 selectedClass) external returns(uint256) {
         ERC20 SourceToken = ERC20(SOURCE_TOKEN);
         require(SourceToken.balanceOf(msg.sender) >= LOOTBOX_PRICES[selectedClass], "EggFactory::buyLootBox: User does not have sufficient source tokens");
         
@@ -155,10 +159,10 @@ contract EggFactory {
 
         uint256 randomEggFromClass = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, RANDOM_NONCE++))) % (CLASS_EGGS[returnedClass].length);
 
-        EGG_TOKEN.mint(msg.sender, EGG_COLORS[randomEggFromClass]);
-        
-        return(msg.sender, CLASS_NAMES[returnedClass], CLASS_EGGS[returnedClass][randomEggFromClass]);
+        uint256 mintedEggId = EGG_TOKEN.mint(msg.sender, EGG_COLORS[randomEggFromClass], EGG_VISUALS[randomEggFromClass]);
         
         emit EggLootBoxOpened(msg.sender, CLASS_NAMES[returnedClass], CLASS_EGGS[returnedClass][randomEggFromClass]);
+        
+        return mintedEggId;
     }
 }
