@@ -3,8 +3,9 @@ pragma solidity ^0.8.0;
 
 import "./deps/ERC721.sol";
 import "./deps/Pausable.sol";
+import "./deps/IEggToken.sol";
 
-contract EggToken is ERC721, Pausable {
+contract EggToken is ERC721, Pausable, IEggToken {
     string[] EGG_COLORS;
     string[] EGG_VISUALS;
     string[] EGG_CLASSES;
@@ -36,60 +37,58 @@ contract EggToken is ERC721, Pausable {
         owner = msg.sender;
     }
 
-    // ["red","green","blue"],["visRed","visGreen","visBlue"],["c1","c1","c2"]
-    function setEggRewards(string[] memory colors, string[] memory visuals, string[] memory classes) external onlyOwner {
+    function setEggRewards(string[] memory colors, string[] memory visuals, string[] memory classes) external override onlyOwner {
         require(colors.length == visuals.length && visuals.length == classes.length, "EggToken::setEggRewards: Length mistmatch.");
         EGG_COLORS = colors;
         EGG_VISUALS = visuals;
         EGG_CLASSES = classes;
     }
 
-    // ["c1","c2"],[[0,1],[2]]
-    function setEggClasses(string[] memory names, uint256[][] memory classEggs) external onlyOwner {
+    function setEggClasses(string[] memory names, uint256[][] memory classEggs) external override onlyOwner {
         require(names.length == classEggs.length, "EggToken::setEggClasses: Length mismatch");
         CLASS_NAMES = names;
         CLASS_EGGS = classEggs;
     }
     
-    function setFactoryOwner(address newOwner) external onlyOwner {
+    function setFactoryOwner(address newOwner) external override onlyOwner {
         owner = newOwner;
     }
     
-    function setParentFactories(address newEggFactory, address newPetFactory) external onlyOwner {
+    function setParentFactories(address newEggFactory, address newPetFactory) external override onlyOwner {
         eggFactory = newEggFactory;
         petFactory = newPetFactory;
     }
 
-    function getEggRewards() external view returns(string[] memory colors, string[] memory visuals, string[] memory classes) {
+    function getEggRewards() external view override returns(string[] memory colors, string[] memory visuals, string[] memory classes) {
         colors = EGG_COLORS;
         visuals = EGG_VISUALS;
         classes = EGG_CLASSES;
     }
 
-    function getEggClasses() external view returns(string[] memory names, uint256[][] memory eggsPerClass) {
+    function getEggClasses() external view override returns(string[] memory names, uint256[][] memory eggsPerClass) {
         names = CLASS_NAMES;
         eggsPerClass = CLASS_EGGS;
     }
 
-    function getEggFromId(uint256 eggId) external view returns(string memory name, string memory visual, string memory class) {
+    function getEggFromId(uint256 eggId) external view override returns(string memory name, string memory visual, string memory class) {
         name = EGG_COLORS[eggId];
         visual = EGG_VISUALS[eggId];
         class = EGG_CLASSES[eggId];
     }
 
-    function getEggFromMintedId(uint256 mintedId) external view returns(string memory name, string memory visual, string memory class) {
+    function getEggFromMintedId(uint256 mintedId) external view override returns(string memory name, string memory visual, string memory class) {
         name = EGG_COLORS[mintedEggs[mintedId]];
         visual = EGG_VISUALS[mintedEggs[mintedId]];
         class = EGG_CLASSES[mintedEggs[mintedId]];
     } 
     
-    function getOwners() external view returns(address _owner, address _eggFactory, address _petFactory) {
+    function getOwners() external view override returns(address _owner, address _eggFactory, address _petFactory) {
         _owner = owner;
         _eggFactory = eggFactory;
         _petFactory = petFactory;
     }
     
-    function mintRandom(address receiver, uint256 class) external onlyOwner returns(uint256 mintedId) {
+    function mintRandom(address receiver, uint256 class) external override onlyOwner returns(uint256 mintedId) {
         RANDOM_NONCE = (RANDOM_NONCE + 1) % 1000000000;
         uint256 randomEggFromClass = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, RANDOM_NONCE))) % (CLASS_EGGS[class].length);
         mintedId = MINT_COUNTER++;
@@ -97,7 +96,7 @@ contract EggToken is ERC721, Pausable {
         mintedEggs[mintedId] = CLASS_EGGS[class][randomEggFromClass];
     }
     
-    function burn(uint256 tokenId) external onlyOwner {
+    function burn(uint256 tokenId) external override onlyOwner {
         _burn(tokenId);
         delete mintedEggs[tokenId];
     }
@@ -107,11 +106,11 @@ contract EggToken is ERC721, Pausable {
         require(!paused(), "ERC721Pausable: token transfer while paused");
     }
 
-    function pause() external onlyOwner {
+    function pause() external override onlyOwner {
         _pause();
     }
     
-    function unpause() external onlyOwner {
+    function unpause() external override onlyOwner {
         _unpause();
     }
 }

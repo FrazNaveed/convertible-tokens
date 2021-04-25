@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./deps/IERC20.sol";
 import "./deps/IEggLootBox.sol";
-import "./EggTokenV2.sol"; // todo: interfacing
+import "./deps/IEggToken.sol";
 
 contract EggFactory {
     address SOURCE_TOKEN;
@@ -60,7 +60,11 @@ contract EggFactory {
     }
     
     function _refreshEggLootbox() internal {
-        // todo
+        (string[] memory eggClassNames, ) = IEggToken(EGG_TOKEN).getEggClasses();
+        IEggLootBox(EGG_LOOTBOX).setEggLootBoxState(LOOTBOX_PRICES.length, eggClassNames.length);
+        for (uint i = 0; i < LOOTBOX_PRICES.length; i++) {
+            IEggLootBox(EGG_LOOTBOX).setEggOptionClasses(i, LOOTBOX_PROBABILITIES[i]);
+        }
     }
     
     function refreshEggLootbox() external onlyDelegatedOwner {
@@ -99,13 +103,8 @@ contract EggFactory {
         require(selectedClass < LOOTBOX_PRICES.length, "EggFactory::byLootbox: Unknown class selected");
         IERC20 st = IERC20(SOURCE_TOKEN);
         require(st.balanceOf(msg.sender) >= LOOTBOX_PRICES[selectedClass], "EggFactory::buyLootbox: User does not have sufficient credits");
-        
         st.transferFrom(msg.sender, address(this), LOOTBOX_PRICES[selectedClass]);
-        
         uint256 randClass = IEggLootBox(EGG_LOOTBOX).mintAndOpen(selectedClass);
-        
-        
-        
-        mintedEggId = 0;
+        mintedEggId = IEggToken(EGG_TOKEN).mintRandom(msg.sender, randClass);
     }
 }
