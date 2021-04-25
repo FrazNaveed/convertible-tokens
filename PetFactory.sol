@@ -1,8 +1,9 @@
 pragma solidity ^0.8.0;
 
-import "./CandyToken.sol";
-import "./EggToken.sol";
-import "./PetToken.sol";
+import "./deps/IERC20.sol";
+import "./deps/IERC721.sol";
+import "./deps/IEggToken.sol";
+import "./deps/IPetToken.sol";
 
 contract PetFactory {
     address SOURCE_TOKEN;
@@ -88,15 +89,16 @@ contract PetFactory {
     }
     
     function buyPet(uint256 eggId) external returns(uint256) {
-        CandyToken ct = CandyToken(SOURCE_TOKEN);
-        EggToken et = EggToken(EGG_TOKEN);
-        PetToken pt = PetToken(PET_TOKEN);
+        IERC20 ct = IERC20(SOURCE_TOKEN);
+        IEggToken et = IEggToken(EGG_TOKEN);
+        IERC721 et721 = IERC721(EGG_TOKEN);
+        IPetToken pt = IPetToken(PET_TOKEN);
         
-        require(et.ownerOf(eggId) == msg.sender, "PetFactory::buyPet: The sender is not owner of given egg");
+        require(et721.ownerOf(eggId) == msg.sender, "PetFactory::buyPet: The sender is not owner of given egg");
         require(ct.balanceOf(msg.sender) >= PET_FEES, "PetFactory::buyPet: The sender does not have sufficient pet fees");
         
-        string memory eggColor = et.getEggColor(eggId);
-        uint256[] memory petProbabilities = EGG_PET_PROBABILITIES[eggColor];
+        (string memory name,,) = et.getEggFromId(eggId);
+        uint256[] memory petProbabilities = EGG_PET_PROBABILITIES[name];
         
         uint256 newPetTokenId;
         string memory selectedPetClassName;

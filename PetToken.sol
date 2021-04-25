@@ -1,8 +1,9 @@
 pragma solidity ^0.8.0;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
+import "./deps/IPetToken.sol";
+import "./deps/ERC721.sol";
 
-contract PetToken is ERC721 {
+contract PetToken is ERC721, IPetToken {
     uint256 RANDOM_NONCE;
     uint256 PETS_COUNT;
     mapping(uint256 => string) PET_ID_NAMES;
@@ -26,34 +27,34 @@ contract PetToken is ERC721 {
         owner = msg.sender;
     }
     
-    function transferOwnership(address newOwner) external onlyOwner {
+    function transferOwnership(address newOwner) external override onlyOwner {
         owner = newOwner;
     }
     
-    function setParentFactory(address newPetFactory) external onlyOwner {
+    function setParentFactory(address newPetFactory) external override onlyOwner {
         eggFactory = newPetFactory;
     }
     
-    function getOwners() external view returns(address, address) {
+    function getOwners() external override view returns(address, address) {
         return(owner, eggFactory);
     }
     
-    function addPet(string memory petName, string memory petVisual) external onlyOwner {
+    function addPet(string memory petName, string memory petVisual) external override onlyOwner {
         require(PET_NAME_IDS[petName] == 0, "PetToken::addPet: A pet with same name already exists");
         PET_ID_NAMES[PETS_COUNT++] = petName;
         PET_ID_VISUALS[PETS_COUNT] = petVisual;
     }
     
-    function getPetFromId(uint256 id) external view returns(string memory, string memory) {
+    function getPetFromId(uint256 id) external view override returns(string memory, string memory) {
         return (PET_ID_NAMES[id], PET_ID_VISUALS[id]);
     }
     
-    function getMintedPet(uint256 mintedId) external view returns(string memory petName, string memory petVisual) {
+    function getMintedPet(uint256 mintedId) external view override returns(string memory petName, string memory petVisual) {
         petName = MINTED_ID_NAME[mintedId];
         petVisual = PET_ID_VISUALS[PET_NAME_IDS[MINTED_ID_NAME[mintedId]]];
     }
     
-    function mintRandom(address receiver, uint256[] memory classProbabilities) external onlyOwner returns(uint256, string memory) {
+    function mintRandom(address receiver, uint256[] memory classProbabilities) external override onlyOwner returns(uint256, string memory) {
         uint256 randomNumber = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, RANDOM_NONCE++))) % 100;
         uint256 sumSoFar = 0;
         uint256 selectedClass = 0;
