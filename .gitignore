@@ -1,1 +1,4 @@
 webfront/
+contracts-gateway/
+artifacts/
+.deps/

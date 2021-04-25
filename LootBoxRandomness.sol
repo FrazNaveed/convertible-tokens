@@ -1,6 +1,7 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import "./deps/SafeMath.sol";
 
 contract LootBoxRandomness {
     using SafeMath for uint256;
