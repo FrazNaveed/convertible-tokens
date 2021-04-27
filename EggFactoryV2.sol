@@ -46,7 +46,6 @@ contract EggFactory {
     }
     
     function setLootboxProbabilities(uint256[][] memory newProbablities) external onlyDelegatedOwner {
-        require(newProbablities.length == LOOTBOX_PRICES.length, "EggFactory::setLootboxProbabilities: Lootboxes to probabilities count mismatch.");
         LOOTBOX_PROBABILITIES = newProbablities;
         _refreshEggLootbox();
     }
