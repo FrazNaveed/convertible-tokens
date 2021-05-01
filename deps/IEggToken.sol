@@ -20,8 +20,6 @@ interface IEggToken {
     
     function getOwners() external view returns(address, address, address);
     
-    function getUserEggs(address) external view returns(uint256[] memory);
-    
     function mintRandom(address, uint256) external returns(uint256);
     
     function burn(uint256) external;
