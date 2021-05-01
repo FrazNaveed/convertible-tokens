@@ -48,6 +48,10 @@ contract PetFactory {
         EGG_TOKEN = newEgg;
     }
     
+    function setPetToken(address newPetToken) external onlyDelegatedOwner {
+        PET_TOKEN = newPetToken;
+    }
+    
     function setPetFees(uint256 newFees) external onlyDelegatedOwner {
         PET_FEES = newFees;
     }
@@ -70,6 +74,10 @@ contract PetFactory {
     
     function getEggToken() external view returns(address) {
         return EGG_TOKEN;
+    }
+    
+    function getPetToken() external view returns(address) {
+        return PET_TOKEN;
     }
     
     function getPetFees() external view returns(uint256) {
@@ -97,12 +105,11 @@ contract PetFactory {
         require(et721.ownerOf(eggId) == msg.sender, "PetFactory::buyPet: The sender is not owner of given egg");
         require(ct.balanceOf(msg.sender) >= PET_FEES, "PetFactory::buyPet: The sender does not have sufficient pet fees");
         
-        (string memory name,,) = et.getEggFromId(eggId);
-        uint256[] memory petProbabilities = EGG_PET_PROBABILITIES[name];
+        (string memory color,,) = et.getEggFromMintedId(eggId);
+        require(keccak256(bytes((color))) != keccak256(bytes(("BURNT"))), "PetFactory::buyPet: Attempt to hatch a burnt egg");
         
-        uint256 newPetTokenId;
-        string memory selectedPetClassName;
-        (newPetTokenId, selectedPetClassName) = pt.mintRandom(msg.sender, petProbabilities);
+        uint256[] memory petProbabilities = EGG_PET_PROBABILITIES[color];
+        (uint256 newPetTokenId, string memory selectedPetClassName) = pt.mintRandom(msg.sender, petProbabilities);
         
         emit PetPurchased(msg.sender, newPetTokenId, selectedPetClassName);
         ct.transferFrom(msg.sender, address(this), PET_FEES);

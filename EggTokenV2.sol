@@ -14,8 +14,9 @@ contract EggToken is ERC721, Pausable, IEggToken {
     uint256[][] CLASS_EGGS;
     
     uint256 MINT_COUNTER;
-    mapping (uint256 => uint256) mintedEggs;
-    // unique id => egg id
+    mapping (uint256 => uint256) mintedEggs; // uniquId => eggId
+    mapping (address => uint256[]) userBalance; // userAddress => uniqueId
+    mapping (uint256 => bool) burntEggs;
 
     uint256 RANDOM_NONCE;
 
@@ -37,6 +38,7 @@ contract EggToken is ERC721, Pausable, IEggToken {
         owner = msg.sender;
     }
 
+    // ["orange","black","burgundy","red","blue","navy","yellow","green","cyan","purple","brown","pink","orange","skin","grey1","grey2","grey3","grey4","grey5","grey6"],["orangeVisual","blackVisual","burgundyVisual","redVisual","blueVisual","navyVisual","yellowVisual","greenVisual","cyanVisual","purpleVisual","brownVisual","pinkVisual","orangeVisual","skinVisual","grey1Visual","grey2Visual","grey3Visual","grey4Visual","grey5Visual","grey6Visual"],["A","A","B","B","B","B","B","B","B","B","B","B","B","B","C","C","C","C","C","C"]
     function setEggRewards(string[] memory colors, string[] memory visuals, string[] memory classes) external override onlyOwner {
         require(colors.length == visuals.length && visuals.length == classes.length, "EggToken::setEggRewards: Length mistmatch.");
         EGG_COLORS = colors;
@@ -44,6 +46,7 @@ contract EggToken is ERC721, Pausable, IEggToken {
         EGG_CLASSES = classes;
     }
 
+    // ["A","B","C"],[[0,1],[2,3,4,5,6,7,8,9,10,11,12,13],[14,15,16,17,18,19]]
     function setEggClasses(string[] memory names, uint256[][] memory classEggs) external override onlyOwner {
         require(names.length == classEggs.length, "EggToken::setEggClasses: Length mismatch");
         CLASS_NAMES = names;
@@ -70,35 +73,41 @@ contract EggToken is ERC721, Pausable, IEggToken {
         eggsPerClass = CLASS_EGGS;
     }
 
-    function getEggFromId(uint256 eggId) external view override returns(string memory name, string memory visual, string memory class) {
-        name = EGG_COLORS[eggId];
+    function getEggFromId(uint256 eggId) external view override returns(string memory color, string memory visual, string memory class) {
+        color = EGG_COLORS[eggId];
         visual = EGG_VISUALS[eggId];
         class = EGG_CLASSES[eggId];
     }
 
-    function getEggFromMintedId(uint256 mintedId) external view override returns(string memory name, string memory visual, string memory class) {
-        name = EGG_COLORS[mintedEggs[mintedId]];
-        visual = EGG_VISUALS[mintedEggs[mintedId]];
-        class = EGG_CLASSES[mintedEggs[mintedId]];
-    } 
-    
+    function getEggFromMintedId(uint256 mintedId) external view override returns(string memory color, string memory visual, string memory class) {
+        uint256 eggId = mintedEggs[mintedId];
+        color = burntEggs[mintedId] ? "BURNT" : EGG_COLORS[eggId];
+        visual = burntEggs[mintedId] ? "BURNT" : EGG_VISUALS[eggId];
+        class = burntEggs[mintedId] ? "BURNT" : EGG_CLASSES[eggId];
+    }
+
     function getOwners() external view override returns(address _owner, address _eggFactory, address _petFactory) {
         _owner = owner;
         _eggFactory = eggFactory;
         _petFactory = petFactory;
     }
-    
+
+    function getUserEggs(address user) external view override returns(uint256[] memory mintedIds) {
+        mintedIds = userBalance[user];
+    }
+
     function mintRandom(address receiver, uint256 class) external override onlyOwner returns(uint256 mintedId) {
         RANDOM_NONCE = (RANDOM_NONCE + 1) % 1000000000;
         uint256 randomEggFromClass = uint(keccak256(abi.encodePacked(block.timestamp, msg.sender, RANDOM_NONCE))) % (CLASS_EGGS[class].length);
+        _mint(receiver, MINT_COUNTER);
+        mintedEggs[MINT_COUNTER] = CLASS_EGGS[class][randomEggFromClass];
+        userBalance[receiver].push(MINT_COUNTER);
         mintedId = MINT_COUNTER++;
-        _mint(receiver, mintedId);
-        mintedEggs[mintedId] = CLASS_EGGS[class][randomEggFromClass];
     }
-    
+
     function burn(uint256 tokenId) external override onlyOwner {
+        burntEggs[tokenId] = true;
         _burn(tokenId);
-        delete mintedEggs[tokenId];
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 tokenId) internal virtual override {

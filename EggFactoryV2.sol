@@ -25,6 +25,8 @@ contract EggFactory {
         _;
     }
     
+    event EggMinted(address receiver, uint256 eggId);
+    
     constructor() {
         factoryOwner = msg.sender;
     }
@@ -41,10 +43,12 @@ contract EggFactory {
         EGG_TOKEN = newAddress;
     }
     
+    // [10,20,30,40]
     function setLootboxPrices(uint256[] memory newLootBoxPrices) external onlyDelegatedOwner {
         LOOTBOX_PRICES = newLootBoxPrices;
     }
     
+    // [[5,30,65],[10,40,50],[15,40,45],[20,50,30]]
     function setLootboxProbabilities(uint256[][] memory newProbablities) external onlyDelegatedOwner {
         LOOTBOX_PROBABILITIES = newProbablities;
         _refreshEggLootbox();
@@ -105,5 +109,6 @@ contract EggFactory {
         st.transferFrom(msg.sender, address(this), LOOTBOX_PRICES[selectedClass]);
         uint256 randClass = IEggLootBox(EGG_LOOTBOX).mintAndOpen(selectedClass);
         mintedEggId = IEggToken(EGG_TOKEN).mintRandom(msg.sender, randClass);
+        emit EggMinted(msg.sender, mintedEggId);
     }
 }
