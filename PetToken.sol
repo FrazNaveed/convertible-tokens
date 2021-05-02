@@ -5,13 +5,12 @@ import "./deps/ERC721.sol";
 
 contract PetToken is ERC721, IPetToken {
     uint256 RANDOM_NONCE;
-    uint256 PETS_COUNT;
-    mapping(uint256 => string) PET_ID_NAMES;
-    mapping(string => uint256) PET_NAME_IDS;
-    mapping(uint256 => string) PET_ID_VISUALS;
+    string[] PET_NAMES;
+    string[] PET_VISUALS;
     
     uint256 MINTED_COUNT;
-    mapping(uint256 => string) MINTED_ID_NAME;
+    mapping(uint256 => uint256) MINTED_PETS; // uniqueToken => petId
+    mapping(address => uint256[]) userBalance; // address => uniqueToken
     
     address owner;
     address eggFactory;
@@ -40,18 +39,33 @@ contract PetToken is ERC721, IPetToken {
     }
     
     function addPet(string memory petName, string memory petVisual) external override onlyOwner {
-        require(PET_NAME_IDS[petName] == 0, "PetToken::addPet: A pet with same name already exists");
-        PET_ID_NAMES[PETS_COUNT++] = petName;
-        PET_ID_VISUALS[PETS_COUNT] = petVisual;
+        PET_NAMES.push(petName);
+        PET_VISUALS.push(petVisual);
     }
     
-    function getPetFromId(uint256 id) external view override returns(string memory, string memory) {
-        return (PET_ID_NAMES[id], PET_ID_VISUALS[id]);
+    function updatePetData(uint256 id, string memory newName, string memory newVisual) external override onlyOwner {
+        PET_NAMES[id] = newName;
+        PET_VISUALS[id] = newVisual;
+    }
+
+    function getUserPets(address user) external view override returns(uint256[] memory pets) {
+        pets = userBalance[user];
+    }
+
+    function getPetFromId(uint256 id) external view override returns(string memory name, string memory visual) {
+        name = PET_NAMES[id];
+        visual = PET_VISUALS[id];
     }
     
     function getMintedPet(uint256 mintedId) external view override returns(string memory petName, string memory petVisual) {
-        petName = MINTED_ID_NAME[mintedId];
-        petVisual = PET_ID_VISUALS[PET_NAME_IDS[MINTED_ID_NAME[mintedId]]];
+        uint256 petId = MINTED_PETS[mintedId];
+        petName = PET_NAMES[petId];
+        petVisual = PET_VISUALS[petId];
+    }
+
+    function getAllPets() external view override returns(string[] memory names, string[] memory visuals) {
+        names = PET_NAMES;
+        visuals = PET_VISUALS;
     }
     
     function mintRandom(address receiver, uint256[] memory classProbabilities) external override onlyOwner returns(uint256, string memory) {
@@ -66,7 +80,8 @@ contract PetToken is ERC721, IPetToken {
             }
         }
         _mint(receiver, ++MINTED_COUNT);
-        MINTED_ID_NAME[MINTED_COUNT] = PET_ID_NAMES[selectedClass];
-        return (MINTED_COUNT, PET_ID_NAMES[selectedClass]);
+        MINTED_PETS[MINTED_COUNT] = selectedClass;
+        userBalance[receiver].push(MINTED_COUNT);
+        return (MINTED_COUNT, PET_NAMES[selectedClass]);
     }
 }
